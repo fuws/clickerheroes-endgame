@@ -12,8 +12,8 @@ var HERO_TABLE_COLUMNS = {
     'dps': 5
 }
 
-function getHeroAttr(huid, attr) {
-    return HEROES[huid][HERO_TABLE_COLUMNS[attr]];
+function getHeroAttr(hnum, attr) {
+    return HEROES[hnum][HERO_TABLE_COLUMNS[attr]];
 }
 
 function calculateProgression() {    
@@ -47,31 +47,31 @@ function calculateProgression() {
     var t0 = performance.now();
     
     for (i = 0; i < 250; i++) {
-        huid = heroReached(lghsStart, start);
-        zone = zoneReached(lghsStart, huid);
+        hnum = heroReached(lghsStart, start);
+        zone = zoneReached(lghsStart, hnum);
         hlevel = (zone * Math.log10(GOLD_SCALE) + 1.5 * lghsStart + 21 
-            - getHeroAttr(huid, "lv1cost")) / 
-            Math.log10(getHeroAttr(huid, "costScale"));
+            - getHeroAttr(hnum, "lv1cost")) / 
+            Math.log10(getHeroAttr(hnum, "costScale"));
         lghsEnd = (zone / 5 - 20) * Math.log10(1 + tp) 
             + Math.log10(20 * 10000 * (1 + tp) / tp);
         lghsChange = lghsEnd - lghsStart > 50 ? lghsEnd - lghsStart 
             : Math.log10(1 + Math.pow(10, lghsEnd - lghsStart));
         
-        huidTL = heroReached(lghsStart, startTL, active=false);
-        zoneTL = zoneReached(lghsStart, huidTL, active=false);
+        hnumTL = heroReached(lghsStart, startTL, active=false);
+        zoneTL = zoneReached(lghsStart, hnumTL, active=false);
         
         data.push([
             i,
             lghsStart.toFixed(2),
-            getHeroAttr(huid, "name"),
+            getHeroAttr(hnum, "name"),
             zone.toFixed(0),
             hlevel.toFixed(0),
             lghsChange.toFixed(2),
             zoneTL < 10000 ? "<10K" : zoneTL.toFixed(0)
         ])
         lghsStart += lghsChange;
-        start = huid;
-        startTL = huidTL;
+        start = hnum;
+        startTL = hnumTL;
     }
     var t1 = performance.now();
     console.log(t1 - t0);
@@ -132,10 +132,10 @@ function zoneReached(lgHS, i, active=true) {
     return zone;
 }
 
-function heroUpgradeBaseCost(huid) {
-    let level = getHeroAttr(huid, "reqlevel");
-    return getHeroAttr(huid, "lv1cost") + 
-        Math.log10(getHeroAttr(huid, "costScale")) * level;
+function heroUpgradeBaseCost(hnum) {
+    let level = getHeroAttr(hnum, "reqlevel");
+    return getHeroAttr(hnum, "lv1cost") + 
+        Math.log10(getHeroAttr(hnum, "costScale")) * level;
 }
 
 function dataArrayToHTML(data) {
