@@ -1,7 +1,13 @@
-var LG_HP_500 = 1 + Math.log10(1.55) * 139 + Math.log10(1.145) * 360;
-var HP_SCALE_500 = 1.145;
-var HP_SCALE_200K = 1.545;
 var GOLD_SCALE = 1.15;
+var HP_SCALE;   // 2xn array. First row is zones. Second row is hpscales
+
+function prepareHPScale() {
+    HP_SCALE = [[1, 140], [1.55, 1.145]];
+    for (i=1; i<=400; i++) {
+        HP_SCALE[0].push(500 * i);
+        HP_SCALE[1].push(1.145 + 0.001 * i);
+    }
+}
 
 var HERO_TABLE_COLUMNS = {
     'name': 0,
@@ -34,6 +40,8 @@ function calculateProgression() {
     } else {
         $("#inputWarning").html("");
     }
+    
+    prepareHPScale();
 
     var tp = 0.25 - 0.23 * Math.exp(-0.0003 * as);
     $("#outputTP").val(tp.toFixed(6));
@@ -105,17 +113,18 @@ function zoneReached(lgHS, i, active=true) {
     let RHS = (efficiency + (2.4 + (active * 0.5) + 1.5 * R) * lgHS 
          + 1.86 - 2 + 21.12 * R);   // Minus 2 to account for boss HP
     
-    let lghp0 = LG_HP_500;
-    
-    for(j = 1; j < 400; j++) {
-        // Loop through each of the 400 hpscale breakpoints
-        let hpscale = HP_SCALE_500 + 0.001 * j;
-        lghp1 = lghp0 + 500 * Math.log10(hpscale);
-        let z0 = j * 500;
-        let z1 = z0 + 500;
+    let lghp0 = 1;  // lgHP at zone 1
+    let nbp = HP_SCALE[0].length;
+    for(j = 0; j < nbp - 1; j++) {
+        // Loop through every HP breakpoint
+        let hpscale = HP_SCALE[1][j];
+        let lghp1 = lghp0 + (HP_SCALE[0][j + 1] - HP_SCALE[0][j]) * 
+            Math.log10(hpscale);
+        let z0 = HP_SCALE[0][j];
+        let z1 = HP_SCALE[0][j + 1];
         
         if(lghp0 - lgDmgMultPerZone * z0 > RHS) {
-            // Cannot advance past the first breakpoint (zone 500)
+            // Cannot advance past the first breakpoint
             return -1;
         }
         if(lghp0 - lgDmgMultPerZone * z0 <= RHS && lghp1 - lgDmgMultPerZone * z1 > RHS) {
@@ -127,8 +136,8 @@ function zoneReached(lgHS, i, active=true) {
         lghp0 = lghp1;
     }
     
-    let M = 1 / (Math.log10(HP_SCALE_200K) - lgDmgMultPerZone);
-    let zone = M * (RHS - 25409 + Math.log10(HP_SCALE_200K) * 2e5);
+    let M = 1 / (Math.log10(HP_SCALE[1][nbp - 1]) - lgDmgMultPerZone);
+    let zone = M * (RHS - lghp0 + Math.log10(HP_SCALE[1][nbp - 1]) * HP_SCALE[0][nbp - 1]);
     return zone;
 }
 
