@@ -3,6 +3,19 @@ var HP_SCALE_500 = 1.145;
 var HP_SCALE_200K = 1.545;
 var GOLD_SCALE = 1.15;
 
+var HERO_TABLE_COLUMNS = {
+    'name': 0,
+    'lv1cost': 1,
+    'costScale': 2,
+    'damageScale': 3,
+    'reqlevel': 4,
+    'dps': 5
+}
+
+function getHeroAttr(huid, attr) {
+    return HEROES[huid][HERO_TABLE_COLUMNS[attr]];
+}
+
 function calculateProgression() {    
     var as = parseFloat($("#inputAS").val());
     var lghs = parseFloat($("#inputLgHS").val());
@@ -50,7 +63,7 @@ function calculateProgression() {
         data.push([
             i,
             lghsStart.toFixed(2),
-            HERO_UPGRADES[huid]["name"],
+            getHeroAttr(huid, "name"),
             zone.toFixed(0),
             hlevel.toFixed(0),
             lghsChange.toFixed(2),
@@ -71,10 +84,10 @@ function heroReached(lgHS, start=0, active=true) {
     // from the previous ascension, to save execution time
     var zone, gold;
     var i = start;
-    for (; i < HERO_UPGRADES.length; i++) {
+    for (; i < HEROES.length; i++) {
         zone = zoneReached(lgHS, i, active);
         gold = zone * Math.log10(GOLD_SCALE) + 1.5 * lgHS + 21;
-        if (i == HERO_UPGRADES.length - 1 || 
+        if (i == HEROES.length - 1 || 
             gold < heroUpgradeBaseCost(i + 1)) {
             break;
         }
@@ -86,7 +99,7 @@ function zoneReached(lgHS, i, active=true) {
     let R = Math.log10(getHeroAttr(i, "damageScale")) / 
         Math.log10(getHeroAttr(i, "costScale")) / 25;
     let lgDmgMultPerZone = Math.log10(GOLD_SCALE) * R;
-    let efficiency = HERO_UPGRADES[i]['dps'] - 
+    let efficiency = getHeroAttr(i, 'dps') - 
         R * (getHeroAttr(i, "lv1cost") + 175 * Math.log10(getHeroAttr(i, "costScale")));
     
     let RHS = (efficiency + (2.4 + (active * 0.5) + 1.5 * R) * lgHS 
@@ -120,7 +133,7 @@ function zoneReached(lgHS, i, active=true) {
 }
 
 function heroUpgradeBaseCost(huid) {
-    let level = HERO_UPGRADES[huid]["reqlevel"];
+    let level = getHeroAttr(huid, "reqlevel");
     return getHeroAttr(huid, "lv1cost") + 
         Math.log10(getHeroAttr(huid, "costScale")) * level;
 }
