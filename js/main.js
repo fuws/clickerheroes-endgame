@@ -41,8 +41,9 @@ function calculateProgression() {
     var lghs = parseFloat($("#inputLgHS").val());
     
     var errMsg = "";
-    if (isNaN(ANCIENT_SOULS) || isNaN(lghs)) {
-        errMsg = "Please enter inputs";
+    if (isNaN(ANCIENT_SOULS) || isNaN(lghs) ||
+       $("#gameRoot2").prop("checked") == $("#gameVanilla").prop("checked")) {
+        errMsg = "Please enter all inputs";
     } else if (lghs < 100) {
         errMsg = "Requires lgHS >= 100";
     }
@@ -55,9 +56,7 @@ function calculateProgression() {
         $("#inputWarning").html("");
     }
     
-    if ($("#root2").prop("checked")) {
-        ROOT2 = true;
-    }
+    ROOT2 = $("#gameRoot2").prop("checked");
     HEROES = ROOT2 ? HEROES_ROOT2 : HEROES_VANILLA;
     
     prepareHPScale();
